@@ -1,0 +1,82 @@
+S3 STORAGE MANAGEMENT GUIDELINES
+================================
+
+Last updated: 2025-05-25  
+Team: Cloud Infrastructure Team  
+Owner: [Team Lead Name]
+
+---
+
+1. BUCKET NAMING CONVENTION
+----------------------------
+- All bucket names must be globally unique and lowercase.
+- Use the format: [team]-[project]-[env]-[purpose]
+  Example: `analytics-ml-prod-user-uploads`
+- Avoid using sensitive or internal data in names.
+- Do not use dots (.) if you intend to enable encryption via KMS (TLS certificate validation may break).
+
+2. OBJECT NAMING CONVENTION-
+----------------------------
+- Follow a hierarchical structure using slashes to simulate folders.
+  Format: [resource-type]/[YYYY]/[MM]/[DD]/[filename]
+  Example: `logs/2025/05/25/app-server-01.log`
+- Avoid spaces or special characters. Use hyphens (`-`) or underscores (`_`).
+
+3. STORAGE CLASSES (not possible to analyze with boto3)
+-------------------
+- Use appropriate storage classes based on access patterns:
+
+  | Storage Class        | Use Case                           |
+  |----------------------|-------------------------------------|
+  | STANDARD             | Frequently accessed data            |
+  | STANDARD_IA          | Infrequently accessed data          |
+  | INTELLIGENT_TIERING  | Uncertain or variable access        |
+  | GLACIER              | Archival, retrieval within minutes  |
+  | DEEP_ARCHIVE         | Long-term storage (12h retrieval)   |
+
+- Never store temporary or duplicate data in STANDARD.
+
+4. LIFECYCLE POLICIES
+----------------------
+- Define lifecycle rules for each bucket at creation:
+  - Transition to `STANDARD_IA` after 30 days.
+  - Transition to `GLACIER` after 90 days.
+  - Delete after 365 days (for logs, backups, etc., if applicable).
+
+5. VERSIONING
+-------------
+- Enable versioning on buckets that store important or user-generated content.
+- Use lifecycle rules to delete old versions after 60–90 days, unless required for compliance.
+
+6. ACCESS CONTROL & PERMISSIONS
+-------------------------------
+- Follow least-privilege principle for IAM policies.
+- Avoid using bucket-wide public access unless explicitly required.
+- Block all public access at the bucket level unless there's a justified exception reviewed by security.
+
+7. ENCRYPTION
+--------------
+- Always enable server-side encryption:
+  - Use `AES-256` by default.
+  - Use KMS for sensitive data (with dedicated keys per project if needed).
+
+8. MONITORING & LOGGING
+------------------------
+- Enable S3 Server Access Logging or CloudTrail to track access to critical buckets.
+- Use S3 Storage Lens for usage metrics and insights.
+
+9. DUPLICATE DETECTION
+------------------------
+- Periodically run a hash-based scan across buckets to identify duplicate objects.
+- Prefer deduplication or object referencing where possible.
+
+10. CLEANUP & COST MANAGEMENT
+------------------------------
+- Audit unused buckets and objects monthly.
+- Tag all buckets with:
+  - `owner`, `environment`, `data-classification`, `retention-policy`
+- Use cost explorer and S3 analytics to review access patterns.
+
+---
+
+Questions or updates? Contact the infrastructure team lead.

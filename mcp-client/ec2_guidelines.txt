@@ -1,0 +1,60 @@
+AWS RESOURCES MANAGEMENT GUIDELINES
+====================================
+
+Last updated: 2025-05-25  
+Team: Cloud Infrastructure Team  
+Owner: [Team Lead Name]
+
+---
+
+SECTION A: EC2 INSTANCES
+-------------------------
+
+1. NAMING CONVENTION
+   - Format: [team]-[project]-[env]-[role]-[index]
+     Example: `data-warehouse-prod-worker-01`
+   - Tag all instances with:
+     - Name
+     - Owner
+     - Project
+     - Environment
+     - AutoShutdown (yes/no)
+
+2. INSTANCE TYPES
+   - Choose instance types based on workload:
+     - `t3` / `t4g` for general purpose, dev, or test
+     - `m5` / `c6` for compute-intensive
+     - `r5` for memory-heavy applications
+   - Prefer ARM-based Graviton instances where compatible for cost/performance.
+
+3. SECURITY
+   - Use key pairs managed via AWS Systems Manager Parameter Store.
+   - Only allow SSH via bastion hosts or SSM Session Manager.
+   - Block all inbound access by default — open ports only as needed.
+   - Enable automatic patching with Systems Manager.
+
+4. COST & AUTO-SCALING
+   - Use Auto Scaling Groups for stateless applications.
+   - Enable Spot Instances for non-critical or fault-tolerant workloads.
+   - Use instance schedules (e.g., shut down dev servers after-hours).
+
+5. MONITORING & BACKUP
+   - Use CloudWatch to track CPU, memory, disk.
+   - Enable detailed monitoring if required.
+   - Set up regular AMI and volume backups via AWS Backup or Lambda.
+
+---
+
+SECTION D: GENERAL TAGGING STANDARD (ALL SERVICES)
+----------------------------------------------------
+- All resources must have the following tags:
+  - `Project`: Name of the project
+  - `Environment`: dev / test / staging / prod
+  - `Owner`: Team or individual responsible
+  - `CostCenter`: Internal billing code
+  - `AutoDelete`: yes/no (for automated cleanup)
+  - `Compliance`: if special data handling rules apply
+
+---
+
+For questions, updates, or exceptions to these guidelines, please contact the Cloud Infrastructure team lead.

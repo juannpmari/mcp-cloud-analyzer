@@ -1,0 +1,4 @@
+1. implement mcp server - done
+    command: mcp dev /Users/juanmari/Documents/mcp-cloud-analyzer/mcp-server/s3/server.py
+2. implement mcp client
+3. 

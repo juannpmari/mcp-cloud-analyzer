@@ -1,0 +1,57 @@
+AWS RESOURCES MANAGEMENT GUIDELINES
+====================================
+
+Last updated: 2025-05-25  
+Team: Cloud Infrastructure Team  
+Owner: [Team Lead Name]
+
+---
+
+
+SECTION C: LAMBDA FUNCTIONS
+----------------------------
+
+1. NAMING CONVENTION
+   - Format: [team]_[project]_[env]_[purpose]
+     Example: `etl_user_events_dev_processor`
+   - Keep function names under 64 characters for compatibility.
+
+2. MEMORY & TIMEOUTS
+   - Start with minimal memory (128 MB) and tune based on metrics.
+   - Set timeouts as short as possible — default to 15 seconds unless otherwise justified.
+
+3. DEPLOYMENT & VERSIONS
+   - Use Lambda **aliases** for staging, blue/green, and production routing.
+   - Keep only the last 5 versions unless regulatory requirements say otherwise.
+   - Package dependencies in layers if reused across functions.
+
+4. LOGGING & MONITORING
+   - Always log to CloudWatch; use structured logging (JSON).
+   - Set up log retention: max 30 days for dev/test, 90+ for prod.
+   - Use AWS X-Ray for tracing high-traffic or slow functions.
+
+5. TRIGGERS
+   - Use EventBridge over CloudWatch Events for new projects.
+   - Avoid using Lambda for high-throughput Kinesis or DynamoDB streams unless necessary (consider MSK or Firehose).
+   - Use batching & error handling configurations.
+
+6. SECURITY
+   - Use least-privilege IAM roles.
+   - Never hard-code credentials or secrets — use SSM Parameter Store or Secrets Manager.
+   - If accessing VPC resources, ensure subnet + security group setup allows DNS and internet access if required.
+
+---
+
+SECTION D: GENERAL TAGGING STANDARD (ALL SERVICES)
+----------------------------------------------------
+- All resources must have the following tags:
+  - `Project`: Name of the project
+  - `Environment`: dev / test / staging / prod
+  - `Owner`: Team or individual responsible
+  - `CostCenter`: Internal billing code
+  - `AutoDelete`: yes/no (for automated cleanup)
+  - `Compliance`: if special data handling rules apply
+
+---
+
+For questions, updates, or exceptions to these guidelines, please contact the Cloud Infrastructure team lead.

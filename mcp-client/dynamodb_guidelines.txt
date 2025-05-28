@@ -1,0 +1,54 @@
+AWS RESOURCES MANAGEMENT GUIDELINES
+====================================
+
+Last updated: 2025-05-25  
+Team: Cloud Infrastructure Team  
+Owner: [Team Lead Name]
+
+---
+
+
+SECTION B: DYNAMODB
+--------------------
+
+1. NAMING CONVENTION
+   - Format: [team]_[project]_[env]_[table-name]
+     Example: `analytics_realtime_prod_events`
+   - Avoid using dashes (`-`) in table names — use underscores (`_`).
+
+2. PARTITION & SORT KEYS
+   - Choose keys carefully based on query access patterns.
+   - Avoid hot partitions by distributing keys evenly.
+
+3. CAPACITY MODE
+   - Use **on-demand** for unpredictable workloads.
+   - Use **provisioned** for steady-state usage — configure auto-scaling.
+
+4. INDEXING
+   - Create secondary indexes only when necessary.
+   - Monitor index usage and delete unused indexes regularly.
+
+5. TTL & ARCHIVAL
+   - Enable TTL for automatic expiry of stale records.
+   - Move cold data to S3 using DynamoDB Streams + Lambda pipelines.
+
+6. SECURITY & BACKUP
+   - Enable point-in-time recovery.
+   - Restrict IAM access to least privilege.
+   - Encrypt all tables with KMS (default key is OK unless otherwise required).
+
+---
+
+SECTION D: GENERAL TAGGING STANDARD (ALL SERVICES)
+----------------------------------------------------
+- All resources must have the following tags:
+  - `Project`: Name of the project
+  - `Environment`: dev / test / staging / prod
+  - `Owner`: Team or individual responsible
+  - `CostCenter`: Internal billing code
+  - `AutoDelete`: yes/no (for automated cleanup)
+  - `Compliance`: if special data handling rules apply
+
+---
+
+For questions, updates, or exceptions to these guidelines, please contact the Cloud Infrastructure team lead.
