@@ -1,4 +1,8 @@
 1. implement mcp server - done
     command: mcp dev /Users/juanmari/Documents/mcp-cloud-analyzer/mcp-server/s3/server.py
-2. implement mcp client
-3. 
+2. compare FastMCP vs low level MCP (https://github.com/modelcontextprotocol/python-sdk/tree/main)
+3. implement mcp client and test the server (https://huggingface.co/learn/mcp-course/unit2/clients)
+    - hacer algun agentito con crewai o langgraph
+    - entender los transportes, stdio vs sse vs streamable-http (https://modelcontextprotocol.io/specification/2025-03-26/basic/transports)
+
+4. 
