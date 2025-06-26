@@ -1,6 +1,9 @@
 
 from typing import List, Dict
 from mcp.server.fastmcp import FastMCP
+import pandas_ta as ta
+import yfinance as yf
+import pandas as pd
 # Create an MCP server
 mcp = FastMCP("Market analyzer")
 
@@ -60,6 +63,45 @@ def get_historical_prices(ticker: str, start_date: str, end_date: str) -> List[t
         return []
 
 @mcp.tool()
+def get_technical_indicators(ticker, start='2024-01-01', end=None):
+    """
+    Fetches technical indicators for a ticker using yfinance and pandas_ta.
+
+    Parameters:
+    - ticker (str): e.g., 'AAPL' or 'BTC-USD'
+    - start (str): start date in YYYY-MM-DD
+    - end (str): end date in YYYY-MM-DD (optional)
+
+    Returns:
+    - DataFrame with indicators as columns (latest row only)
+    """
+    try:
+        df = yf.download(ticker, start=start, end=end, interval='1d', progress=False)
+        if df.empty:
+            print("No data found.")
+            return None
+
+        # Add indicators
+        df.ta.sma(length=20, append=True)
+        df.ta.ema(length=20, append=True)
+        df.ta.rsi(length=14, append=True)
+        df.ta.macd(append=True)
+        df.ta.bbands(append=True)
+
+        # Return latest row with indicators
+        indicators = df.iloc[-1][[
+            'SMA_20', 'EMA_20', 'RSI_14',
+            'MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9',
+            'BBL_20_2.0', 'BBM_20_2.0', 'BBU_20_2.0'
+        ]]
+
+        return indicators.dropna().to_dict()
+    
+    except Exception as e:
+        print(f"Error fetching indicators for {ticker}: {e}")
+        return None
+
+@mcp.tool()
 def list_ticker_news():
     pass
 
@@ -89,7 +131,7 @@ def get_crypto_prices(crypto_symbols:List[str]) -> Dict[str, float]:
     return prices
 
 
-# @mcp.prompt() #IDEA: podría devolver un prompt para summarizar las noticias de un ticker
+# @mcp.prompt() #IDEA: podría devolver un prompt para summarizar las noticias de un ticker, o para armar un reporte semanal de ciertos tickers
 # def optimize_guidelines(s3_guidelines:str) -> str:
 #     """
 #     """
