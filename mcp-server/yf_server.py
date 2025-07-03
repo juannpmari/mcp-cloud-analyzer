@@ -8,7 +8,7 @@ import requests
 # Create an MCP server
 mcp = FastMCP("Market analyzer")
 
-@mcp.resource()
+@mcp.tool()
 def search_stock_tickers(ticker_query: str = "") -> str:
     """Return up to 20 ticker names related to ticker_query. Use to retrieve tickers names for other resources.
     
@@ -30,7 +30,7 @@ def search_stock_tickers(ticker_query: str = "") -> str:
 
     return {item['ticker']:item['company_name'] for item in data['tickers']}
 
-@mcp.resource()
+@mcp.tool()
 def get_tickers_price(tickers: list[str]) -> Dict[str, float]:
     """
     Get the latest price for a list of tickers using Yahoo Finance.
@@ -51,7 +51,7 @@ def get_tickers_price(tickers: list[str]) -> Dict[str, float]:
             prices[ticker] = f"Error: {e}"
     return prices
 
-@mcp.resource()
+@mcp.tool()
 def get_historical_prices(ticker: str, start_date: str, end_date: str) -> List[tuple]:
     """
     Fetches daily closing prices for a given ticker between start_date and end_date.
@@ -81,46 +81,46 @@ def get_historical_prices(ticker: str, start_date: str, end_date: str) -> List[t
         print(f"Error fetching data for {ticker}: {e}")
         return []
 
-@mcp.tool()
-def get_technical_indicators(ticker, start='2024-01-01', end=None):
-    """
-    Fetches technical indicators for a ticker using yfinance and pandas_ta.
+# @mcp.tool()
+# def get_technical_indicators(ticker, start='2024-01-01', end=None):
+#     """
+#     Fetches technical indicators for a ticker using yfinance and pandas_ta.
 
-    Parameters:
-    - ticker (str): e.g., 'AAPL' or 'BTC-USD'
-    - start (str): start date in YYYY-MM-DD
-    - end (str): end date in YYYY-MM-DD (optional)
+#     Parameters:
+#     - ticker (str): e.g., 'AAPL' or 'BTC-USD'
+#     - start (str): start date in YYYY-MM-DD
+#     - end (str): end date in YYYY-MM-DD (optional)
 
-    Returns:
-    - DataFrame with indicators as columns (latest row only)
-    """
-    try:
-        df = yf.download(ticker, start=start, end=end, interval='1d', progress=False)
-        if df.empty:
-            print("No data found.")
-            return None
+#     Returns:
+#     - DataFrame with indicators as columns (latest row only)
+#     """
+#     try:
+#         df = yf.download(ticker, start=start, end=end, interval='1d', progress=False)
+#         if df.empty:
+#             print("No data found.")
+#             return None
 
-        # Add indicators
-        df.ta.sma(length=20, append=True)
-        df.ta.ema(length=20, append=True)
-        df.ta.rsi(length=14, append=True)
-        df.ta.macd(append=True)
-        df.ta.bbands(append=True)
+#         # Add indicators
+#         df.ta.sma(length=20, append=True)
+#         df.ta.ema(length=20, append=True)
+#         df.ta.rsi(length=14, append=True)
+#         df.ta.macd(append=True)
+#         df.ta.bbands(append=True)
 
-        # Return latest row with indicators
-        indicators = df.iloc[-1][[
-            'SMA_20', 'EMA_20', 'RSI_14',
-            'MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9',
-            'BBL_20_2.0', 'BBM_20_2.0', 'BBU_20_2.0'
-        ]]
+#         # Return latest row with indicators
+#         indicators = df.iloc[-1][[
+#             'SMA_20', 'EMA_20', 'RSI_14',
+#             'MACD_12_26_9', 'MACDh_12_26_9', 'MACDs_12_26_9',
+#             'BBL_20_2.0', 'BBM_20_2.0', 'BBU_20_2.0'
+#         ]]
 
-        return indicators.dropna().to_dict()
+#         return indicators.dropna().to_dict()
     
-    except Exception as e:
-        print(f"Error fetching indicators for {ticker}: {e}")
-        return None
+#     except Exception as e:
+#         print(f"Error fetching indicators for {ticker}: {e}")
+#         return None
 
-@mcp.resource()
+@mcp.tool()
 def list_ticker_news(ticker: str, n_news: int = 10, hours_ago: int = 0) -> str:
     """ Returns n_news news about a ticker from the last hours_ago hours. Use to get context to predict ticker evolution.
     

@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  mcpanalyzer:
+    image: mcpcloudanalyzer:latest
+    ports:
+      - "3001:3001"
+      - "6274:6274"
+    # command: 
+    #   - tail -f /dev/null
+    # volumes:
+    #   - ./mcp-server:/app/mcp-server
