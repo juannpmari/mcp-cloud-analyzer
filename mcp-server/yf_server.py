@@ -102,8 +102,29 @@ def get_technical_indicators(ticker, start='2024-01-01', end=None):
         return None
 
 @mcp.tool()
-def list_ticker_news():
-    pass
+def list_ticker_news(ticker: str, n_news: int = 10) -> str:
+    ticker = ticker.lower()
+    url = "https://api.tickertick.com/feed"
+    params = {
+        # "q": f"(diff tt:{ticker} s:reddit)",
+        "q": f"(and tt:{ticker} T:curated)",
+        "n": n_news,
+        # "last": 6844326865886118959,
+        # "hours_ago": 2400
+    }
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    news=f"Last {n_news} news about {ticker}: \n"
+    for item in data["stories"]:
+        news += f" Title: {item['title']} \n"
+        if 'description' in item:
+            news += f" Description: {item['description']} \n"
+        news += f" URL: {item['url']} \n"
+        news += "--------------------------------\n"
+
+    return news
 
 @mcp.tool()
 def list_crypto_names():
