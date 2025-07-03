@@ -1,18 +1,37 @@
 
 from typing import List, Dict
 from mcp.server.fastmcp import FastMCP
-import pandas_ta as ta
+# import pandas_ta as ta
 import yfinance as yf
 import pandas as pd
+import requests
 # Create an MCP server
 mcp = FastMCP("Market analyzer")
 
-@mcp.tool()
-def list_ticker_names():
-    pass #TODO
+@mcp.resource()
+def search_stock_tickers(ticker_query: str = "") -> str:
+    """Return up to 20 ticker names related to ticker_query. Use to retrieve tickers names for other resources.
+    
+    Parameters:
+    ticker_query (str): e.g. 'AAPL' or 'GOOG', 'MSFT'
+    
+    Returns:
+    dict: Dictionary with tickers as keys and their company names as values.
+    """
+    ticker_query = ticker_query.lower()
+    url = "https://api.tickertick.com/tickers"
+    params = {
+        "p": f"{ticker_query}",
+        "n": 20,
+    }
 
-@mcp.tool()
-def get_ticker_prices(tickers:List[str]) -> Dict[str, float]:
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    return {item['ticker']:item['company_name'] for item in data['tickers']}
+
+@mcp.resource()
+def get_tickers_price(tickers: list[str]) -> Dict[str, float]:
     """
     Get the latest price for a list of tickers using Yahoo Finance.
 
@@ -32,7 +51,7 @@ def get_ticker_prices(tickers:List[str]) -> Dict[str, float]:
             prices[ticker] = f"Error: {e}"
     return prices
 
-@mcp.tool()
+@mcp.resource()
 def get_historical_prices(ticker: str, start_date: str, end_date: str) -> List[tuple]:
     """
     Fetches daily closing prices for a given ticker between start_date and end_date.
@@ -101,16 +120,24 @@ def get_technical_indicators(ticker, start='2024-01-01', end=None):
         print(f"Error fetching indicators for {ticker}: {e}")
         return None
 
-@mcp.tool()
-def list_ticker_news(ticker: str, n_news: int = 10) -> str:
+@mcp.resource()
+def list_ticker_news(ticker: str, n_news: int = 10, hours_ago: int = 0) -> str:
+    """ Returns n_news news about a ticker from the last hours_ago hours. Use to get context to predict ticker evolution.
+    
+    Parameters:
+    ticker (str): e.g. 'AAPL' or 'GOOG', 'MSFT'
+    n_news (int): number of news to return
+    hours_ago (int): news are from up to hours_ago hours ago
+
+    Returns:
+    str: string with the last n_news news about the ticker
+    """
     ticker = ticker.lower()
     url = "https://api.tickertick.com/feed"
     params = {
-        # "q": f"(diff tt:{ticker} s:reddit)",
         "q": f"(and tt:{ticker} T:curated)",
         "n": n_news,
-        # "last": 6844326865886118959,
-        # "hours_ago": 2400
+        "hours_ago": hours_ago
     }
 
     response = requests.get(url, params=params)
@@ -126,43 +153,13 @@ def list_ticker_news(ticker: str, n_news: int = 10) -> str:
 
     return news
 
-@mcp.tool()
-def list_crypto_names():
-    pass #TODO
-
-@mcp.tool()
-def get_crypto_prices(crypto_symbols:List[str]) -> Dict[str, float]:
+@mcp.prompt() #IDEA: podría devolver un prompt para summarizar las noticias de un ticker, o para armar un reporte semanal de ciertos tickers
+def summarize_ticker_news(ticker: str, news: List[str] = []) -> str:
     """
-    Fetches current crypto prices from Yahoo Finance using yfinance.
-    
-    Parameters:
-    crypto_symbols (list): List like ['BTC', 'ETH', 'DOGE']
-    
-    Returns:
-    dict: { 'BTC': 66234.4, 'ETH': 3342.1, ... }
     """
-    prices = {}
-    for symbol in crypto_symbols:
-        ticker = f"{symbol}-USD"
-        try:
-            price = yf.Ticker(ticker).fast_info['last_price']
-            prices[symbol] = price
-        except Exception as e:
-            prices[symbol] = f"Error: {e}"
-    return prices
-
-
-# @mcp.prompt() #IDEA: podría devolver un prompt para summarizar las noticias de un ticker, o para armar un reporte semanal de ciertos tickers
-# def optimize_guidelines(s3_guidelines:str) -> str:
-#     """
-#     """
-#     return f""
-
-# @mcp.resource("s3://{bucket}") #TODO: check if this is useful
-# def s3_resource(bucket: str) -> str:
-#     return get_s3_client()
+    return f"Given the following news about {ticker}: {news}, summarize them in a single paragraph."
 
 
 # Run the server
 if __name__ == "__main__":
-    mcp.run(transport='sse', port=3001)
+    mcp.run(transport='sse')#, port=3001)
